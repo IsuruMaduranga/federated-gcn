@@ -93,7 +93,7 @@ class Model:
         return self.model.get_weights()
 
     def fit(self,epochs = 4):
-        history = self.model.fit(self.train_flow, epochs=epochs, verbose=0)
+        history = self.model.fit(self.train_flow, epochs=epochs, verbose=1)
         return self.model.get_weights(),history
 
     def gen_embeddings(self):
@@ -104,14 +104,12 @@ class Model:
 if __name__ == "__main__":
 
     path_weights = "./weights/weights.npy"
-    path_node_partition = "./data/4_attributes_0"
-    path_edge_partition = "./data/4_0"
+    path_node_partition = "./data/4_nodes_0.csv"
+    path_edge_partition = "./data/4_edges_0.csv"
 
-    nodes = pd.read_csv(path_node_partition , sep='\t', lineterminator='\n',header=None).loc[:,0:1433]
-    nodes.set_index(0,inplace=True)
+    nodes = pd.read_csv(path_node_partition, index_col=0 )
 
-    edges = pd.read_csv(path_edge_partition , sep='\s+', lineterminator='\n', header=None)
-    edges.columns = ["source","target"] 
+    edges = pd.read_csv(path_edge_partition)
 
     model = Model(nodes,edges)
     model.initialize()
