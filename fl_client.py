@@ -61,6 +61,7 @@ class Client:
             data = pickle.loads(full_msg)
 
             self.STOP_FLAG = data["STOP_FLAG"]
+            print(data["STOP_FLAG"])
 
             return data["WEIGHTS"]
 
@@ -91,14 +92,15 @@ class Client:
                 embeddings_path = self.embeddings_path + 'embeddings_' + self.graph_id + '_' + self.partition_id + ".csv"
                 embeddings.to_csv(embeddings_path)
 
-            print(f"Model version: {self.rounds} fetched")
+            else:
+                print(f"Model version: {self.rounds} fetched")
 
-            self.rounds += 1
-            print(f"Training cycle: {self.rounds}")
-            self.train()
+                self.rounds += 1
+                print(f"Training cycle: {self.rounds}")
+                self.train()
 
-            print(f"Sent local model")
-            self.send_model()
+                print(f"Sent local model")
+                self.send_model()
 
         print("Training Done")
 

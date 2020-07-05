@@ -74,6 +74,8 @@ class Server:
 
         data = {"STOP_FLAG":self.stop_flag,"WEIGHTS":weights}
 
+        print(self.stop_flag)
+
         data = pickle.dumps(data)
         data = bytes(f"{len(data):<{self.HEADER_LENGTH}}", 'utf-8') + data
 
@@ -180,7 +182,7 @@ if __name__ == "__main__":
     model = Model(nodes,edges)
     model.initialize()
     
-    server = Server(model,ROUNDS=args['num_rounds'],weights_path=args['path_weights'],graph_id=args['graph_id'],MAX_CONN=int(args['num_clients']),IP=args['IP'],PORT=int(args['PORT']))
+    server = Server(model,ROUNDS=int(args['num_rounds']),weights_path=args['path_weights'],graph_id=args['graph_id'],MAX_CONN=int(args['num_clients']),IP=args['IP'],PORT=int(args['PORT']))
 
     del nodes
     del edges
