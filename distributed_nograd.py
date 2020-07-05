@@ -25,13 +25,15 @@ if __name__ == "__main__":
     model = Model(nodes,edges)
     model.initialize()
 
+    model.fit(int(args['epochs']))
+
     embeddings = model.gen_embeddings()
                 
     # embeddings file name : embeddings_nograd_graphid_workerid.npy
     embeddings_path = args['embeddings_path'] + 'embeddings_nograd_' + args['graph_id'] + '_' + args['partition_id'] + ".csv"
     embeddings.to_csv(embeddings_path)
 
-    model.fit(int(args['epochs']))
+   
 
 
 
