@@ -53,20 +53,26 @@ class Model:
 
 ## Start training
 
-Starting server
+#### Starting server
 
 python fl_server.py path_weights path_data graph_id partition_id num_clients num_rounds IP(optional - default localhost) PORT(optional - default 5000)
 
-Ex:-
+```
 python fl_server.py ./weights/  ./data/ 4 0 2 3 localhost 5000
+```
 
 
-Starting clients
-python fl_client.py path_weights path_embeddings path_data graph_id partition_id epochs(optional - default 10) IP(optional - default localhost) PORT(optional - default 5000)
+#### Starting clients
 
-Ex:-
+python fl_client.py path_weights path_embeddings path_data graph_id partition_id epochs(optional - default 10) IP(optional - default localhost) PORT(optional - default 5000) <br />
 
+Client 1
+```
 python fl_client.py ./weights/ ./embeddings/ ./data/ 4 0 10 localhost 5000
+```
+Client 2
+```
 python fl_client.py ./weights/ ./embeddings/ ./data/ 4 1 10 localhost 5000
+```
 
 
