@@ -5,6 +5,9 @@ import time
 import numpy as np
 import pandas as pd
 import sys
+import logging
+
+logging.basicConfig(filename='server.log',level=logging.DEBUG, format='%(asctime)s : %(levelname)s - %(message)s')
 
 class Server:
 
@@ -59,7 +62,7 @@ class Server:
             weights_path = self.weights_path + 'global_weights_' + self.graph_id + ".npy"
             np.save(weights_path,new_weights)
             
-            print(f"Training cycle {self.training_cycles} done!")
+            logging.info(f"Training cycle %d done!", self.training_cycles)
 
             for soc in self.sockets_list[1:]:
                 self.send_model(soc)
@@ -74,12 +77,12 @@ class Server:
 
         data = {"STOP_FLAG":self.stop_flag,"WEIGHTS":weights}
 
-        print(self.stop_flag)
-
         data = pickle.dumps(data)
         data = bytes(f"{len(data):<{self.HEADER_LENGTH}}", 'utf-8') + data
 
         client_socket.sendall(data)
+
+        logging.info(f"Training cycle %d done!", self.training_cycles)
         print('Sent global model to: {}'.format(self.clients[client_socket]))
 
 
@@ -156,7 +159,8 @@ if __name__ == "__main__":
 
     arg_names = [
         'path_weights',
-        'path_data',
+        'path_nodes',
+        'path_edges',
         'graph_id',
         'partition_id',
         'num_clients',
@@ -173,10 +177,10 @@ if __name__ == "__main__":
     if 'PORT' not in args.keys():
         args['PORT'] = 5000
 
-    path_nodes = args['path_data'] + args['graph_id'] + '_nodes_' + args['partition_id'] + ".csv"
+    path_nodes = args['path_nodes'] + args['graph_id'] + '_nodes_' + args['partition_id'] + ".csv"
     nodes = pd.read_csv(path_nodes,index_col=0)
 
-    path_edges = args['path_data'] + args['graph_id'] + '_edges_' + args['partition_id'] + ".csv"
+    path_edges = args['path_edges'] + args['graph_id'] + '_edges_' + args['partition_id'] + ".csv"
     edges = pd.read_csv(path_edges)
    
     model = Model(nodes,edges)

@@ -4,6 +4,7 @@ import select
 import sys
 import numpy as np
 import pandas as pd
+import logging
 
 class Client:
 
@@ -112,7 +113,8 @@ if __name__ == "__main__":
     arg_names = [
         'path_weights',
         'path_embeddings',
-        'path_data',
+        'path_nodes',
+        'path_edges',
         'graph_id',
         'partition_id',
         'epochs',
@@ -121,6 +123,9 @@ if __name__ == "__main__":
         ]
 
     args = dict(zip(arg_names, sys.argv[1:]))
+
+    partition_id = args['partition_id']
+    logging.basicConfig(filename=f'client_{partition_id}.log',level=logging.DEBUG, format='%(asctime)s : %(levelname)s - %(message)s')
 
     if 'IP' not in args.keys()  or args['IP'] == 'localhost':
         args['IP'] = socket.gethostname()
@@ -131,10 +136,10 @@ if __name__ == "__main__":
     if 'epochs' not in args.keys():
         args['epoch'] = 10
 
-    path_nodes = args['path_data'] + args['graph_id'] + '_nodes_' + args['partition_id'] + ".csv"
+    path_nodes = args['path_nodes'] + args['graph_id'] + '_nodes_' + args['partition_id'] + ".csv"
     nodes = pd.read_csv(path_nodes,index_col=0)
 
-    path_edges = args['path_data'] + args['graph_id'] + '_edges_' + args['partition_id'] + ".csv"
+    path_edges = args['path_edges'] + args['graph_id'] + '_edges_' + args['partition_id'] + ".csv"
     edges = pd.read_csv(path_edges) 
 
     model = Model(nodes,edges)

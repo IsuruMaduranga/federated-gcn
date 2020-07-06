@@ -31,13 +31,13 @@ class Model:
         if(not "batch_size" in hyper_params.keys()):
             batch_size = 20
         if(not "layer_sizes" in hyper_params.keys()):
-            num_samples = [20, 10]
+            num_samples = [25, 10]
         if(not "num_samples" in hyper_params.keys()):
-            layer_sizes = [50, 50]
+            layer_sizes = [128, 128]
         if(not "bias" in hyper_params.keys()):
             bias = True
         if(not "dropout" in hyper_params.keys()):
-            dropout = 0.3
+            dropout = 0.0
         if(not "lr" in hyper_params.keys()):
             lr = 1e-3
         if(not "num_walks" in hyper_params.keys()):
@@ -61,7 +61,7 @@ class Model:
 
         # Model defining - Keras functional API + Stellargraph layers
         graphsage = GraphSAGE(
-            layer_sizes=layer_sizes, generator=train_gen, bias=bias, dropout=dropout
+            layer_sizes=layer_sizes, generator=train_gen, bias=bias, dropout=dropout, normalize="l2"
         )
 
         x_inp, x_out = graphsage.in_out_tensors()
@@ -93,11 +93,17 @@ class Model:
         return self.model.get_weights()
 
     def fit(self,epochs = 4):
-        history = self.model.fit(self.train_flow, epochs=epochs, verbose=1)
+        history = self.model.fit(
+            self.train_flow, 
+            epochs=epochs, 
+            verbose=1,
+            use_multiprocessing=False,
+            workers=4
+        )
         return self.model.get_weights(),history
 
     def gen_embeddings(self):
-        node_embeddings = self.embedding_model.predict(self.node_gen, verbose=1)
+        node_embeddings = self.embedding_model.predict(self.node_gen, workers=4, verbose=1)
         return pd.DataFrame(node_embeddings,index=self.nodes)
 
 
