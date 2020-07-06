@@ -6,8 +6,16 @@ import numpy as np
 import pandas as pd
 import sys
 import logging
+from timeit import default_timer as timer
 
-logging.basicConfig(filename='server.log',level=logging.DEBUG, format='%(asctime)s : %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, 
+    format='%(asctime)s : [%(levelname)s]  %(message)s',
+    handlers=[
+        logging.FileHandler('server.log'),
+        logging.StreamHandler(sys.stdout)
+    ]
+)
 
 class Server:
 
@@ -36,6 +44,7 @@ class Server:
         # List of sockets for select.select()
         self.sockets_list = []
         self.clients = {}
+        self.client_ids = {}
 
         # Craete server socket
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -62,7 +71,7 @@ class Server:
             weights_path = self.weights_path + 'global_weights_' + self.graph_id + ".npy"
             np.save(weights_path,new_weights)
             
-            logging.info(f"Training cycle %d done!", self.training_cycles)
+            logging.info("Training cycle %s done!", self.training_cycles)
 
             for soc in self.sockets_list[1:]:
                 self.send_model(soc)
@@ -82,8 +91,7 @@ class Server:
 
         client_socket.sendall(data)
 
-        logging.info(f"Training cycle %d done!", self.training_cycles)
-        print('Sent global model to: {}'.format(self.clients[client_socket]))
+        logging.info('Sent global model to client-%s at %s:%s',self.client_ids[client_socket],*self.clients[client_socket])
 
 
     def receive(self, client_socket):
@@ -92,7 +100,7 @@ class Server:
             message_header = client_socket.recv(self.HEADER_LENGTH)
 
             if not len(message_header):
-                print('Client closed connection from: {}'.format(self.clients[client_socket]))
+                logging.error('Client-%s closed connection at %s:%s',self.client_ids[client_socket], *self.clients[client_socket])
                 return False
 
             message_length = int(message_header.decode('utf-8').strip())
@@ -111,7 +119,7 @@ class Server:
             return pickle.loads(full_msg)
 
         except Exception as e:
-            print('Client closed connection from: {}'.format(self.clients[client_socket]))
+            logging.error('Client-%s closed connection at %s:%s',self.client_ids[client_socket], *self.clients[client_socket])
             return False
 
 
@@ -128,8 +136,9 @@ class Server:
                     client_socket, client_address = self.server_socket.accept()
                     self.sockets_list.append(client_socket)
                     self.clients[client_socket] = client_address
+                    self.client_ids[client_socket] = "new"
 
-                    print('Accepted new connection from {}:{}'.format(*client_address))
+                    logging.info('Accepted new connection at %s:%s',*client_address)
 
                     self.send_model(client_socket)
 
@@ -137,20 +146,23 @@ class Server:
 
                     message = self.receive(notified_socket)
 
+                    client_id = message['CLIENT_ID']
+                    weights = message['WEIGHTS']
+
+                    self.client_ids[notified_socket] = client_id
+
                     if message is False:
                         self.sockets_list.remove(notified_socket)
                         del self.clients[notified_socket]
 
                         continue
                     
-                    print('Recieved model from {}:{}'.format(*self.clients[notified_socket]))
-                    self.update_model(message)
+                    logging.info('Recieved model from client-%s at %s:%s',client_id, *self.clients[notified_socket])
+                    self.update_model(weights)
 
             for notified_socket in exception_sockets:
                 self.sockets_list.remove(notified_socket)
                 del self.clients[notified_socket]
-
-        print("Federated training done!")
 
 
 if __name__ == "__main__":
@@ -171,6 +183,8 @@ if __name__ == "__main__":
 
     args = dict(zip(arg_names, sys.argv[1:]))
 
+    logging.info('Server started , graph ID %s, number of clients %s, number of rounds %s',args['graph_id'],args['num_clients'],args['num_rounds'])
+
     if 'IP' not in args.keys()  or args['IP'] == 'localhost':
         args['IP'] = socket.gethostname()
 
@@ -185,6 +199,8 @@ if __name__ == "__main__":
    
     model = Model(nodes,edges)
     model.initialize()
+
+    logging.info('Model initialized')
     
     server = Server(model,ROUNDS=int(args['num_rounds']),weights_path=args['path_weights'],graph_id=args['graph_id'],MAX_CONN=int(args['num_clients']),IP=args['IP'],PORT=int(args['PORT']))
 
@@ -192,4 +208,13 @@ if __name__ == "__main__":
     del edges
     del model
     
+    logging.info('Federated training started!')
+
+    start = timer()
     server.run()
+    end = timer()
+
+    elapsed_time = end -start
+    logging.info('Federated training done!')
+    logging.warning('Training report : Elapsed time %s seconds, graph ID %s, number of clients %s, number of rounds %s',elapsed_time,args['graph_id'],args['num_clients'],args['num_rounds'])
+    
