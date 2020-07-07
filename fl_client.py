@@ -5,7 +5,33 @@ import sys
 import numpy as np
 import pandas as pd
 import logging
+from timeit import default_timer as timer
+import time
 
+arg_names = [
+    'path_weights',
+    'path_embeddings',
+    'path_nodes',
+    'path_edges',
+    'graph_id',
+    'partition_id',
+    'epochs',
+    'IP',
+    'PORT'
+]
+
+args = dict(zip(arg_names, sys.argv[1:]))
+
+partition_id = args['partition_id']
+
+logging.basicConfig(
+    level=logging.INFO, 
+    format='%(asctime)s : [%(levelname)s]  %(message)s',
+    handlers=[
+        logging.FileHandler(f'client_{partition_id}.log'),
+        logging.StreamHandler(sys.stdout)
+    ]
+)
 class Client:
 
     def __init__(self, MODEL, weights_path, embeddings_path , graph_id, partition_id, epochs = 10, IP = socket.gethostname(), PORT = 5000, HEADER_LENGTH = 10):
@@ -35,7 +61,10 @@ class Client:
         weights_path = self.weights_path + 'weights_' + self.graph_id + '_' + self.partition_id + ".npy"
         np.save(weights_path,self.MODEL.get_weights())
 
-        data = np.array(self.MODEL.get_weights())
+        weights = np.array(self.MODEL.get_weights())
+
+        data = {"CLIENT_ID":self.partition_id,"WEIGHTS":weights}
+
         data = pickle.dumps(data)
         data = bytes(f"{len(data):<{self.HEADER_LENGTH}}", 'utf-8') + data
         self.client_socket.sendall(data)
@@ -62,7 +91,6 @@ class Client:
             data = pickle.loads(full_msg)
 
             self.STOP_FLAG = data["STOP_FLAG"]
-            print(data["STOP_FLAG"])
 
             return data["WEIGHTS"]
 
@@ -94,38 +122,20 @@ class Client:
                 embeddings.to_csv(embeddings_path)
 
             else:
-                print(f"Model version: {self.rounds} fetched")
+                logging.info('Model version %s fetched',self.rounds)
 
                 self.rounds += 1
-                print(f"Training cycle: {self.rounds}")
+                logging.info('Training cycle %s started',self.rounds)
                 self.train()
+                logging.info('Training cycle %s done',self.rounds)
 
-                print(f"Sent local model")
+                logging.info('Sent local model to the server')
                 self.send_model()
-
-        print("Training Done")
 
 
 if __name__ == "__main__":
 
     from models.unsupervised import Model
-
-    arg_names = [
-        'path_weights',
-        'path_embeddings',
-        'path_nodes',
-        'path_edges',
-        'graph_id',
-        'partition_id',
-        'epochs',
-        'IP',
-        'PORT'
-        ]
-
-    args = dict(zip(arg_names, sys.argv[1:]))
-
-    partition_id = args['partition_id']
-    logging.basicConfig(filename=f'client_{partition_id}.log',level=logging.DEBUG, format='%(asctime)s : %(levelname)s - %(message)s')
 
     if 'IP' not in args.keys()  or args['IP'] == 'localhost':
         args['IP'] = socket.gethostname()
@@ -136,17 +146,29 @@ if __name__ == "__main__":
     if 'epochs' not in args.keys():
         args['epoch'] = 10
 
+    logging.warning('Client started, graph ID %s, partition ID %s, epochs %s',args['graph_id'],args['partition_id'],args['epochs'])
+
     path_nodes = args['path_nodes'] + args['graph_id'] + '_nodes_' + args['partition_id'] + ".csv"
     nodes = pd.read_csv(path_nodes,index_col=0)
 
     path_edges = args['path_edges'] + args['graph_id'] + '_edges_' + args['partition_id'] + ".csv"
     edges = pd.read_csv(path_edges) 
 
+    logging.info('Model initialized')
     model = Model(nodes,edges)
     model.initialize()
 
     client = Client(model,weights_path=args['path_weights'],embeddings_path = args['path_embeddings'],graph_id=args['graph_id'],partition_id=args['partition_id'],epochs = int(args['epochs']) ,IP=args['IP'],PORT=int(args['PORT']))
 
+
+    logging.info('Federated training started!')
+
+    start = timer()
     client.run()
+    end = timer()
+
+    elapsed_time = end -start
+    logging.info('Federated training done!')
+    logging.warning('Training report : Elapsed time %s seconds, graph ID %s, partition ID %s, epochs %s',elapsed_time,args['graph_id'],args['partition_id'],args['epochs'])
 
     

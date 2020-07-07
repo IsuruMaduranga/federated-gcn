@@ -1,2 +1,5 @@
 weights
 embeddings
+server.log
+client_0.log
+client_1.log
