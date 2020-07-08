@@ -146,16 +146,14 @@ class Server:
 
                     message = self.receive(notified_socket)
 
-                    client_id = message['CLIENT_ID']
-                    weights = message['WEIGHTS']
-
-                    self.client_ids[notified_socket] = client_id
-
                     if message is False:
                         self.sockets_list.remove(notified_socket)
                         del self.clients[notified_socket]
-
                         continue
+                    else:
+                        client_id = message['CLIENT_ID']
+                        weights = message['WEIGHTS']
+                        self.client_ids[notified_socket] = client_id
                     
                     logging.info('Recieved model from client-%s at %s:%s',client_id, *self.clients[notified_socket])
                     self.update_model(weights)
