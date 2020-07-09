@@ -28,6 +28,11 @@ path_edges_centralstore = args['path_centralstore'] + args['graph_id'] + '_centr
 edges_centralstore = pd.read_csv(path_edges_centralstore, sep='\s+', lineterminator='\n', header=None)
 edges_centralstore.columns = ["source","target"]
 
+# Reducing memory consumption
+edges_centralstore = edges_centralstore.astype({"source":"uint32","target":"uint32"})
+edges_localstore = edges_localstore.astype({"source":"uint32","target":"uint32"})
+nodes_localstore = nodes_localstore.astype("float32")
+nodes_centralstore = nodes_localstore.astype("float32")
 
 nodes = pd.concat([nodes_localstore,nodes_centralstore]).reset_index().drop_duplicates(subset=[0]).set_index(0)
 edges = pd.concat([edges_localstore,edges_centralstore],ignore_index=True)

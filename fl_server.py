@@ -7,6 +7,7 @@ import pandas as pd
 import sys
 import logging
 from timeit import default_timer as timer
+import gc
 
 logging.basicConfig(
     level=logging.INFO, 
@@ -191,9 +192,12 @@ if __name__ == "__main__":
 
     path_nodes = args['path_nodes'] + args['graph_id'] + '_nodes_' + args['partition_id'] + ".csv"
     nodes = pd.read_csv(path_nodes,index_col=0)
+    nodes = nodes.astype("float32")
 
     path_edges = args['path_edges'] + args['graph_id'] + '_edges_' + args['partition_id'] + ".csv"
     edges = pd.read_csv(path_edges)
+    edges = edges.astype({"source":"uint32","target":"uint32"})
+    
    
     model = Model(nodes,edges)
     model.initialize()
@@ -205,6 +209,7 @@ if __name__ == "__main__":
     del nodes
     del edges
     del model
+    gc.collect()
     
     logging.info('Federated training started!')
 

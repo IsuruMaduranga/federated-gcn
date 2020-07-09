@@ -150,9 +150,11 @@ if __name__ == "__main__":
 
     path_nodes = args['path_nodes'] + args['graph_id'] + '_nodes_' + args['partition_id'] + ".csv"
     nodes = pd.read_csv(path_nodes,index_col=0)
+    nodes = nodes.astype("float32")
 
     path_edges = args['path_edges'] + args['graph_id'] + '_edges_' + args['partition_id'] + ".csv"
-    edges = pd.read_csv(path_edges) 
+    edges = pd.read_csv(path_edges)
+    edges = edges.astype({"source":"uint32","target":"uint32"})
 
     logging.info('Model initialized')
     model = Model(nodes,edges)
