@@ -10,6 +10,7 @@ import time
 
 arg_names = [
     'path_weights',
+    'path_embeddings',
     'path_nodes',
     'path_edges',
     'graph_id',
@@ -33,13 +34,14 @@ logging.basicConfig(
 )
 class Client:
 
-    def __init__(self, MODEL, weights_path, graph_id, partition_id, epochs = 10, IP = socket.gethostname(), PORT = 5000, HEADER_LENGTH = 10):
+    def __init__(self, MODEL, weights_path, embeddings_path , graph_id, partition_id, epochs = 10, IP = socket.gethostname(), PORT = 5000, HEADER_LENGTH = 10):
 
         self.HEADER_LENGTH =  HEADER_LENGTH
         self.IP = IP
         self.PORT = PORT
 
         self.weights_path = weights_path
+        self.embeddings_path = embeddings_path
         self.graph_id = graph_id
         self.partition_id = partition_id
         self.epochs = epochs
@@ -113,21 +115,18 @@ class Client:
                 self.fetch_model()
             
             if self.STOP_FLAG:
-                eval = self.MODEL.evaluate()
-                logging.warning('Final Training eval : accuracy - %s, recall - %s, AUC - %s',eval[0][1],eval[0][2],eval[0][3])
-                logging.warning('Final Testing eval : accuracy - %s, recall - %s, AUC - %s',eval[1][1],eval[1][2],eval[1][3])
+                embeddings = self.MODEL.gen_embeddings()
                 
+                # embeddings file name : embeddings_graphid_workerid.npy
+                embeddings_path = self.embeddings_path + 'embeddings_' + self.graph_id + '_' + self.partition_id + ".csv"
+                embeddings.to_csv(embeddings_path)
+
             else:
                 logging.info('Model version %s fetched',self.rounds)
 
                 self.rounds += 1
                 logging.info('Training cycle %s started',self.rounds)
                 self.train()
-
-                eval = self.MODEL.evaluate()
-                logging.warning('Round %s - Training eval : accuracy - %s, recall - %s, AUC - %s',self.rounds,eval[0][1],eval[0][2],eval[0][3])
-                logging.warning('Round %s - Testing eval : accuracy - %s, recall - %s, AUC - %s',self.rounds,eval[1][1],eval[1][2],eval[1][3])
-
                 logging.info('Training cycle %s done',self.rounds)
 
                 logging.info('Sent local model to the server')
@@ -136,7 +135,7 @@ class Client:
 
 if __name__ == "__main__":
 
-    from models.supervised import Model
+    from models.unsupervised import Model
 
     if 'IP' not in args.keys()  or args['IP'] == 'localhost':
         args['IP'] = socket.gethostname()
@@ -161,7 +160,7 @@ if __name__ == "__main__":
     model = Model(nodes,edges)
     model.initialize()
 
-    client = Client(model,weights_path=args['path_weights'],graph_id=args['graph_id'],partition_id=args['partition_id'],epochs = int(args['epochs']) ,IP=args['IP'],PORT=int(args['PORT']))
+    client = Client(model,weights_path=args['path_weights'],embeddings_path = args['path_embeddings'],graph_id=args['graph_id'],partition_id=args['partition_id'],epochs = int(args['epochs']) ,IP=args['IP'],PORT=int(args['PORT']))
 
 
     logging.info('Federated training started!')

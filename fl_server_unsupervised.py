@@ -166,7 +166,7 @@ class Server:
 
 if __name__ == "__main__":
 
-    from models.supervised import Model
+    from models.unsupervised import Model
 
     arg_names = [
         'path_weights',
