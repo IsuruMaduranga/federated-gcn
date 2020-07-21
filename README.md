@@ -63,7 +63,24 @@ Repository <br />
 
 #### Starting fl_server
 
-Following arguments must be passed in following order
+Following arguments must be passed in following order <br />
+
+For unsupervised training
+
+* path_weights - A location to extract and store model weights
+* path_nodes - Where your graph nodes are stored
+* path_edges - Where your graph edges are stored
+* graph_id - ID for identify graphs
+* partition_id - ID of the partition located in server that is used to initialize the weights
+* num_clients - Number of clients that will be join for the federated training
+* num_rounds - Number of federated rounds to be trained
+* IP(optional - default localhost) - IP of the VM that fl_server is in
+* PORT(optional - default 5000) - PORT that shuould be used to communicate with clients
+
+```
+python fl_server_unsupervised.py ./weights/ ./data/ ./data/ 4 0 2 3 localhost 5000
+```
+For supervised training
 
 * path_weights - A location to extract and store model weights
 * path_nodes - Where your graph nodes are stored
@@ -82,6 +99,8 @@ python fl_server.py ./weights/ ./data/ ./data/ 4 0 2 3 localhost 5000
 
 #### Starting fl_client s
 
+For unsupervised training
+
 * path_weights - A location to extract and store model weights
 * path_embeddings - A location to store node embeddings if you want to generate them
 * path_nodes - Where your graph nodes are stored
@@ -89,7 +108,6 @@ python fl_server.py ./weights/ ./data/ ./data/ 4 0 2 3 localhost 5000
 * graph_id - ID for identify graphs
 * partition_id - ID of the partition located in server that is used to initialize the weights
 * epochs - number of epochs to train
-* num_rounds - Number of federated rounds to be trained
 * IP(optional - default localhost) - IP of the VM that fl_server is in
 * PORT(optional - default 5000) - PORT that fl_server is listening to
 
@@ -97,11 +115,29 @@ Any number of clients can be started but number of clients should be passed in t
 
 client 1
 ```
-python fl_client.py ./weights/ ./embeddings/ ./data/ ./data/ 4 0 4 localhost 5000
+python fl_client_unsupervised.py ./weights/ ./embeddings/ ./data/ ./data/ 4 0 4 localhost 5000
 ```
 client 2
 ```
-python fl_client.py ./weights/ ./embeddings/ ./data/ ./data/ 4 1 4 localhost 5000
+python fl_client_unsupervised.py ./weights/ ./embeddings/ ./data/ ./data/ 4 1 4 localhost 5000
 ```
 
+For supervised training
 
+* path_weights - A location to extract and store model weights
+* path_nodes - Where your graph nodes are stored
+* path_edges - Where your graph edges are stored
+* graph_id - ID for identify graphs
+* partition_id - ID of the partition located in server that is used to initialize the weights
+* epochs - number of epochs to train
+* IP(optional - default localhost) - IP of the VM that fl_server is in
+* PORT(optional - default 5000) - PORT that fl_server is listening to
+
+client 1
+```
+python fl_client.py ./weights/ ./data/ ./data/ 4 0 10 localhost 5000
+```
+client 2
+```
+python fl_client.py ./weights/ ./data/ ./data/ 4 1 10 localhost 5000
+```

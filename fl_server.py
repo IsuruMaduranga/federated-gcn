@@ -182,7 +182,7 @@ if __name__ == "__main__":
 
     args = dict(zip(arg_names, sys.argv[1:]))
 
-    logging.warning('Server started , graph ID %s, number of clients %s, number of rounds %s',args['graph_id'],args['num_clients'],args['num_rounds'])
+    logging.info('Server started , graph ID %s, number of clients %s, number of rounds %s',args['graph_id'],args['num_clients'],args['num_rounds'])
 
     if 'IP' not in args.keys()  or args['IP'] == 'localhost':
         args['IP'] = socket.gethostname()
@@ -219,5 +219,5 @@ if __name__ == "__main__":
 
     elapsed_time = end -start
     logging.info('Federated training done!')
-    logging.warning('Training report : Elapsed time %s seconds, graph ID %s, number of clients %s, number of rounds %s',elapsed_time,args['graph_id'],args['num_clients'],args['num_rounds'])
+    logging.info('Training report : Elapsed time %s seconds, graph ID %s, number of clients %s, number of rounds %s',elapsed_time,args['graph_id'],args['num_clients'],args['num_rounds'])
     

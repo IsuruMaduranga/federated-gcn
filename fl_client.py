@@ -114,8 +114,8 @@ class Client:
             
             if self.STOP_FLAG:
                 eval = self.MODEL.evaluate()
-                logging.warning('Final Training eval : accuracy - %s, recall - %s, AUC - %s',eval[0][1],eval[0][2],eval[0][3])
-                logging.warning('Final Testing eval : accuracy - %s, recall - %s, AUC - %s',eval[1][1],eval[1][2],eval[1][3])
+                logging.info('Final Training eval : accuracy - %s, recall - %s, AUC - %s',eval[0][1],eval[0][2],eval[0][3])
+                logging.info('Final Testing eval : accuracy - %s, recall - %s, AUC - %s',eval[1][1],eval[1][2],eval[1][3])
                 
             else:
                 logging.info('Model version %s fetched',self.rounds)
@@ -125,8 +125,8 @@ class Client:
                 self.train()
 
                 eval = self.MODEL.evaluate()
-                logging.warning('Round %s - Training eval : accuracy - %s, recall - %s, AUC - %s',self.rounds,eval[0][1],eval[0][2],eval[0][3])
-                logging.warning('Round %s - Testing eval : accuracy - %s, recall - %s, AUC - %s',self.rounds,eval[1][1],eval[1][2],eval[1][3])
+                logging.info('Round %s - Training eval : accuracy - %s, recall - %s, AUC - %s',self.rounds,eval[0][1],eval[0][2],eval[0][3])
+                logging.info('Round %s - Testing eval : accuracy - %s, recall - %s, AUC - %s',self.rounds,eval[1][1],eval[1][2],eval[1][3])
 
                 logging.info('Training cycle %s done',self.rounds)
 
@@ -147,7 +147,7 @@ if __name__ == "__main__":
     if 'epochs' not in args.keys():
         args['epoch'] = 10
 
-    logging.warning('Client started, graph ID %s, partition ID %s, epochs %s',args['graph_id'],args['partition_id'],args['epochs'])
+    logging.info('Client started, graph ID %s, partition ID %s, epochs %s',args['graph_id'],args['partition_id'],args['epochs'])
 
     path_nodes = args['path_nodes'] + args['graph_id'] + '_nodes_' + args['partition_id'] + ".csv"
     nodes = pd.read_csv(path_nodes,index_col=0)
@@ -172,6 +172,6 @@ if __name__ == "__main__":
 
     elapsed_time = end -start
     logging.info('Federated training done!')
-    logging.warning('Training report : Elapsed time %s seconds, graph ID %s, partition ID %s, epochs %s',elapsed_time,args['graph_id'],args['partition_id'],args['epochs'])
+    logging.info('Training report : Elapsed time %s seconds, graph ID %s, partition ID %s, epochs %s',elapsed_time,args['graph_id'],args['partition_id'],args['epochs'])
 
     
