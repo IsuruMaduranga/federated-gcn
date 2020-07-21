@@ -29,11 +29,11 @@ class Model:
     def initialize(self,**hyper_params):
 
         if(not "batch_size" in hyper_params.keys()):
-            batch_size = 20
+            batch_size = 16
         if(not "layer_sizes" in hyper_params.keys()):
             num_samples = [25, 10]
         if(not "num_samples" in hyper_params.keys()):
-            layer_sizes = [128, 128]
+            layer_sizes = [256, 256]
         if(not "bias" in hyper_params.keys()):
             bias = True
         if(not "dropout" in hyper_params.keys()):
@@ -98,7 +98,7 @@ class Model:
             epochs=epochs, 
             verbose=1,
             use_multiprocessing=False,
-            workers=4
+            workers=1
         )
         return self.model.get_weights(),history
 

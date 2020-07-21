@@ -3,3 +3,7 @@ embeddings
 server.log
 client_0.log
 client_1.log
+supervised.log
+*.ipynb
+__*
+.ipynb*

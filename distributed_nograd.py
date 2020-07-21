@@ -30,7 +30,7 @@ if __name__ == "__main__":
     embeddings = model.gen_embeddings()
                 
     # embeddings file name : embeddings_nograd_graphid_workerid.npy
-    embeddings_path = args['embeddings_path'] + 'embeddings_nograd_' + args['graph_id'] + '_' + args['partition_id'] + ".csv"
+    embeddings_path = args['path_embeddings'] + 'embeddings_nograd_' + args['graph_id'] + '_' + args['partition_id'] + ".csv"
     embeddings.to_csv(embeddings_path)
 
    
