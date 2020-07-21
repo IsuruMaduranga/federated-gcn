@@ -12,6 +12,17 @@ import os
 import sys
 import numpy as np
 import pandas as pd
+import logging
+from timeit import default_timer as timer
+
+logging.basicConfig(
+    level=logging.INFO, 
+    format='%(asctime)s : [%(levelname)s]  %(message)s',
+    handlers=[
+        logging.FileHandler('supervised.log'),
+        logging.StreamHandler(sys.stdout)
+    ]
+)
 
 class Model:
 
@@ -20,9 +31,12 @@ class Model:
 
         self.nodes =  nodes
         self.edges = edges
-        self.graph = None
+
+        self.graph_train = None
+        self.graph_test = None
 
         self.train_flow = None
+        self.test_flow = None
 
     def initialize(self,**hyper_params):
 
@@ -35,23 +49,31 @@ class Model:
         if(not "bias" in hyper_params.keys()):
             bias = True
         if(not "dropout" in hyper_params.keys()):
-            dropout = 0.3
+            dropout = 0.5
         if(not "lr" in hyper_params.keys()):
             lr = 1e-3
-        if(not "train_split" in hyper_params.keys()):
-            train_split = 0.2
 
-        self.graph = sg.StellarGraph(nodes=self.nodes,edges=self.edges)
+        graph = sg.StellarGraph(nodes=self.nodes,edges=self.edges)
+
+        # Test split
+        edge_splitter_test = EdgeSplitter(graph)
+        self.graph_test, edge_ids_test, edge_labels_test = edge_splitter_test.train_test_split(
+            p=0.1, method="global", keep_connected=True, seed = 42
+        )
 
         # Train split
-        edge_splitter_train = EdgeSplitter(self.graph)
-        graph_train, edge_ids_train, edge_labels_train = edge_splitter_train.train_test_split(
-            p=train_split, method="global", keep_connected=True
+        edge_splitter_train = EdgeSplitter(self.graph_test)
+        self.graph_train, edge_ids_train, edge_labels_train = edge_splitter_train.train_test_split(
+            p=0.1, method="global", keep_connected=True, seed = 42
         )
 
         # Train iterators
-        train_gen = GraphSAGELinkGenerator(graph_train, batch_size, num_samples)
+        train_gen = GraphSAGELinkGenerator(self.graph_train, batch_size, num_samples, seed = 42)
         self.train_flow = train_gen.flow(edge_ids_train, edge_labels_train, shuffle=True)
+
+        # Test iterators
+        test_gen = GraphSAGELinkGenerator(self.graph_train, batch_size, num_samples, seed = 42)
+        self.test_flow = test_gen.flow(edge_ids_test, edge_labels_test, shuffle=True)
 
         # Model defining - Keras functional API + Stellargraph layers
         graphsage = GraphSAGE(
@@ -69,7 +91,7 @@ class Model:
         self.model.compile(
             optimizer=keras.optimizers.Adam(lr=lr),
             loss=keras.losses.binary_crossentropy,
-            metrics=["acc"],
+            metrics=[keras.metrics.BinaryAccuracy(),keras.metrics.Recall(),keras.metrics.AUC()],
         )
 
         return self.model.get_weights()
@@ -80,30 +102,56 @@ class Model:
     def get_weights(self):
         return self.model.get_weights()
 
-    def fit(self,epochs = 10):
-        history = self.model.fit(self.train_flow, epochs=epochs, verbose=0)
+    def fit(self,epochs = 20):
+        history = self.model.fit(self.train_flow, epochs=epochs, verbose=1)
         return self.model.get_weights(),history
+    
+    def evaluate(self):
+        train_metrics = self.model.evaluate(self.train_flow)
+        test_metrics = self.model.evaluate(self.test_flow)
+
+        return train_metrics,test_metrics
 
 
 
 if __name__ == "__main__":
 
-    path_weights = "./weights/weights.npy"
-    path_node_partition = "./data/4_attributes_0"
-    path_edge_partition = "./data/4_0"
+    #path_weights = "./weights/weights_cora.npy"
+    #path_nodes = "./data/4_nodes_0.csv"
+    #path_edges = "./data/4_edges_0.csv"
 
-    nodes = pd.read_csv(path_node_partition , sep='\t', lineterminator='\n',header=None).loc[:,0:1433]
-    nodes.set_index(0,inplace=True)
+    arg_names = [
+        'path_weights',
+        'path_nodes',
+        'path_edges'
+    ]
 
-    edges = pd.read_csv(path_edge_partition , sep='\s+', lineterminator='\n', header=None)
-    edges.columns = ["source","target"] 
+    args = dict(zip(arg_names, sys.argv[1:]))
+
+    nodes = pd.read_csv(args["path_nodes"],index_col=0)
+    #nodes = nodes.astype("float32")
+
+    edges = pd.read_csv(args["path_edges"])
+    #edges = edges.astype({"source":"uint32","target":"uint32"})
 
     model = Model(nodes,edges)
     model.initialize()
 
-    print("Training started")
+    logging.info('Training started!')
+    start = timer()
+
     new_weights,history = model.fit()
-    print("Training done")
+
+    end = timer()
+    logging.info('Training done!')
+
+    elapsed_time = end -start
 
     # Save weights
-    np.save(path_weights,new_weights)
+    np.save(args['path_weights'],new_weights)
+
+    eval = model.evaluate()
+
+    logging.warning('Training eval : accuracy - %s, recall - %s, AUC - %s',eval[0][1],eval[0][2],eval[0][3])
+    logging.warning('Testing eval : accuracy - %s, recall - %s, AUC - %s',eval[1][1],eval[1][2],eval[1][3])
+    logging.warning('Elapsed time : %s seconds',elapsed_time)
