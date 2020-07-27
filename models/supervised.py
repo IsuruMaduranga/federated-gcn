@@ -142,6 +142,8 @@ if __name__ == "__main__":
     edges = pd.read_csv(args["path_edges"])
     #edges = edges.astype({"source":"uint32","target":"uint32"})
 
+    logging.warning('####################################### New Training Session #######################################')
+
     model = Model(nodes,edges)
     model.initialize()
 
@@ -160,6 +162,9 @@ if __name__ == "__main__":
 
     eval = model.evaluate()
 
-    logging.warning('Training eval : accuracy - %s, recall - %s, AUC - %s',eval[0][1],eval[0][2],eval[0][3])
-    logging.warning('Testing eval : accuracy - %s, recall - %s, AUC - %s',eval[1][1],eval[1][2],eval[1][3])
-    logging.warning('Elapsed time : %s seconds',elapsed_time)
+    f1_train = (2 * eval[0][2] * eval[0][4]) / (eval[0][2] + eval[0][4])
+    f1_test = (2 * eval[1][2] * eval[1][4]) / (eval[1][2] + eval[1][4])
+
+    logging.info('Training set : accuracy - %s, recall - %s, AUC - %s, F1 - %s, precision - %s',eval[0][1],eval[0][2],eval[0][3],f1_train,eval[0][4])
+    logging.info('Testing set : accuracy - %s, recall - %s, AUC - %s, F1 - %s, precision - %s',eval[1][1],eval[1][2],eval[1][3],f1_test,eval[1][4])
+    logging.info('Elapsed time : %s seconds',elapsed_time)
