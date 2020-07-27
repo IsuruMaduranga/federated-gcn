@@ -6,7 +6,11 @@ from stellargraph.layer import GraphSAGE, HinSAGE, link_classification
 from stellargraph import globalvar
 from stellargraph import datasets
 
+import tensorflow as tf
 from tensorflow import keras
+import random as python_random
+
+
 from sklearn import preprocessing, feature_extraction, model_selection
 import os
 import sys
@@ -14,6 +18,10 @@ import numpy as np
 import pandas as pd
 import logging
 from timeit import default_timer as timer
+
+tf.random.set_seed(42)
+np.random.seed(42)
+python_random.seed(42)
 
 logging.basicConfig(
     level=logging.INFO, 
@@ -91,7 +99,7 @@ class Model:
         self.model.compile(
             optimizer=keras.optimizers.Adam(lr=lr),
             loss=keras.losses.binary_crossentropy,
-            metrics=[keras.metrics.BinaryAccuracy(),keras.metrics.Recall(),keras.metrics.AUC()],
+            metrics=[keras.metrics.BinaryAccuracy(),keras.metrics.Recall(),keras.metrics.AUC(),keras.metrics.Precision()],
         )
 
         return self.model.get_weights()

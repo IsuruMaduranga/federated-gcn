@@ -61,6 +61,12 @@ Repository <br />
 
 ## Start training
 
+Before start clients or server set PYTHONHASHSEED environment variable to 0 for getting reproducible results.
+
+```
+PYTHONHASHSEED=0
+```
+
 #### Starting fl_server
 
 Following arguments must be passed in following order <br />
