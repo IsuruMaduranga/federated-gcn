@@ -76,7 +76,7 @@ class Server:
             weights_path = self.weights_path + 'global_weights_' + self.graph_id + ".npy"
             np.save(weights_path,new_weights)
             
-            logging.info("Training cycle %s done!", self.training_cycles)
+            logging.info("___________________________________________________ Training round %s done ______________________________________________________", self.training_cycles)
 
             for soc in self.sockets_list[1:]:
                 self.send_model(soc)
@@ -187,6 +187,7 @@ if __name__ == "__main__":
 
     args = dict(zip(arg_names, sys.argv[1:]))
 
+    logging.warning('####################################### New Training Session #######################################')
     logging.info('Server started , graph ID %s, number of clients %s, number of rounds %s',args['graph_id'],args['num_clients'],args['num_rounds'])
 
     if 'IP' not in args.keys()  or args['IP'] == 'localhost':

@@ -113,24 +113,42 @@ class Client:
 
             for soc in read_sockets:
                 self.fetch_model()
-            
+                
+        
             if self.STOP_FLAG:
                 eval = self.MODEL.evaluate()
-                logging.info('Final Training eval : accuracy - %s, recall - %s, AUC - %s',eval[0][1],eval[0][2],eval[0][3])
-                logging.info('Final Testing eval : accuracy - %s, recall - %s, AUC - %s',eval[1][1],eval[1][2],eval[1][3])
+
+                f1_train = (2 * eval[0][2] * eval[0][4]) / (eval[0][2] + eval[0][4])
+                f1_test = (2 * eval[1][2] * eval[1][4]) / (eval[1][2] + eval[1][4])
+                logging.info('_____________________________________________________ Final model evalution ____________________________________________________________')
+                logging.info('Finel model (v%s) fetched',self.rounds)
+                logging.info('Training set : accuracy - %s, recall - %s, AUC - %s, F1 - %s, precision - %s',eval[0][1],eval[0][2],eval[0][3],f1_train,eval[0][4])
+                logging.info('Testing set : accuracy - %s, recall - %s, AUC - %s, F1 - %s, precision - %s',eval[1][1],eval[1][2],eval[1][3],f1_test,eval[1][4])
                 
             else:
-                logging.info('Model version %s fetched',self.rounds)
-
+                
                 self.rounds += 1
-                logging.info('Training cycle %s started',self.rounds)
-                self.train()
+                logging.info('_____________________________________________________ Training Round %s ____________________________________________________________',self.rounds)
+                logging.info('Global model v%s fetched',self.rounds - 1)
 
                 eval = self.MODEL.evaluate()
-                logging.info('Round %s - Training eval : accuracy - %s, recall - %s, AUC - %s',self.rounds,eval[0][1],eval[0][2],eval[0][3])
-                logging.info('Round %s - Testing eval : accuracy - %s, recall - %s, AUC - %s',self.rounds,eval[1][1],eval[1][2],eval[1][3])
 
-                logging.info('Training cycle %s done',self.rounds)
+                f1_train = (2 * eval[0][2] * eval[0][4]) / (eval[0][2] + eval[0][4])
+                f1_test = (2 * eval[1][2] * eval[1][4]) / (eval[1][2] + eval[1][4])
+                logging.info('Global model v%s - Training set evaluation : accuracy - %s, recall - %s, AUC - %s, F1 - %s, precision - %s',self.rounds - 1,eval[0][1],eval[0][2],eval[0][3],f1_train,eval[0][4])
+                logging.info('Global model v%s - Testing set evaluation : accuracy - %s, recall - %s, AUC - %s, F1 - %s, precision - %s',self.rounds - 1,eval[1][1],eval[1][2],eval[1][3],f1_test,eval[1][4])
+
+                
+                logging.info('Training started')
+                self.train()
+                logging.info('Training done')
+
+                eval = self.MODEL.evaluate()
+
+                f1_train = (2 * eval[0][2] * eval[0][4]) / (eval[0][2] + eval[0][4])
+                f1_test = (2 * eval[1][2] * eval[1][4]) / (eval[1][2] + eval[1][4])
+                logging.info('After Round %s - Local model - Training set evaluation : accuracy - %s, recall - %s, AUC - %s, F1 - %s, precision - %s',self.rounds,eval[0][1],eval[0][2],eval[0][3],f1_train,eval[0][4])
+                logging.info('After Round %s - Local model - Testing set evaluation : accuracy - %s, recall - %s, AUC - %s, F1 - %s, precision - %s',self.rounds,eval[1][1],eval[1][2],eval[1][3],f1_test,eval[1][4])
 
                 logging.info('Sent local model to the server')
                 self.send_model()
@@ -149,6 +167,7 @@ if __name__ == "__main__":
     if 'epochs' not in args.keys():
         args['epoch'] = 10
 
+    logging.warning('####################################### New Training Session #######################################')
     logging.info('Client started, graph ID %s, partition ID %s, epochs %s',args['graph_id'],args['partition_id'],args['epochs'])
 
     path_nodes = args['path_nodes'] + args['graph_id'] + '_nodes_' + args['partition_id'] + ".csv"
