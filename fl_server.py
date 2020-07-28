@@ -73,13 +73,13 @@ class Server:
             self.training_cycles += 1
 
             # weights file name : global_weights_graphid.npy
-            weights_path = self.weights_path + 'global_weights_' + self.graph_id + ".npy"
+            weights_path = self.weights_path + 'weights_' + 'graphID:' + self.graph_id + "_V" + str(self.training_cycles) + ".npy"
             np.save(weights_path,new_weights)
-            
-            logging.info("___________________________________________________ Training round %s done ______________________________________________________", self.training_cycles)
 
             for soc in self.sockets_list[1:]:
                 self.send_model(soc)
+            
+            logging.info("___________________________________________________ Training round %s done ______________________________________________________", self.training_cycles)
         
 
     def send_model(self, client_socket):

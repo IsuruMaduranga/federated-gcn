@@ -59,7 +59,8 @@ class Client:
         # svae model weights
         # weights file name : weights_graphid_workerid.npy
         weights_path = self.weights_path + 'weights_' + self.graph_id + '_' + self.partition_id + ".npy"
-        np.save(weights_path,self.MODEL.get_weights())
+        
+        #np.save(weights_path,self.MODEL.get_weights())
 
         weights = np.array(self.MODEL.get_weights())
 
