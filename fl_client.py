@@ -63,7 +63,7 @@ class Client:
 
         weights = np.array(self.MODEL.get_weights())
 
-        data = {"CLIENT_ID":self.partition_id,"WEIGHTS":weights,"NUM_NODES":self.graph_params[0]}
+        data = {"CLIENT_ID":self.partition_id,"WEIGHTS":weights,"NUM_EXAMPLES":self.graph_params[0]}
 
         data = pickle.dumps(data)
         data = bytes(f"{len(data):<{self.HEADER_LENGTH}}", 'utf-8') + data
@@ -172,19 +172,19 @@ if __name__ == "__main__":
 
     path_nodes = args['path_nodes'] + args['graph_id'] + '_nodes_' + args['partition_id'] + ".csv"
     nodes = pd.read_csv(path_nodes,index_col=0)
-    num_nodes = nodes.shape[0]
     #nodes = nodes.astype("float32")
 
     path_edges = args['path_edges'] + args['graph_id'] + '_edges_' + args['partition_id'] + ".csv"
     edges = pd.read_csv(path_edges)
-    num_edges = edges.shape[0]
     #edges = edges.astype({"source":"uint32","target":"uint32"})
-
-    graph_params = (num_nodes,num_edges)
 
     logging.info('Model initialized')
     model = Model(nodes,edges)
-    model.initialize()
+    num_train_ex,num_test_ex = model.initialize()
+
+    graph_params = (num_train_ex,num_test_ex)
+
+    logging.info('Number of training examples - %s, Number of testing examples %s',num_train_ex,num_test_ex)
 
     client = Client(model,graph_params,weights_path=args['path_weights'],graph_id=args['graph_id'],partition_id=args['partition_id'],epochs = int(args['epochs']) ,IP=args['IP'],PORT=int(args['PORT']))
 

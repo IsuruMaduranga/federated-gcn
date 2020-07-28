@@ -102,7 +102,8 @@ class Model:
             metrics=[keras.metrics.BinaryAccuracy(),keras.metrics.Recall(),keras.metrics.AUC(),keras.metrics.Precision()],
         )
 
-        return self.model.get_weights()
+        # return number of training and testing examples
+        return edge_ids_train.shape[0],edge_ids_test.shape[0]
 
     def set_weights(self,weights):
         self.model.set_weights(weights)

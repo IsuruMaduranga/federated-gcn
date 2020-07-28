@@ -56,9 +56,9 @@ class Server:
 
         self.sockets_list.append(self.server_socket)
 
-    def update_model(self,new_weights,num_nodes):
-        self.partition_sizes.append(num_nodes)
-        self.weights.append(num_nodes*new_weights)
+    def update_model(self,new_weights,num_examples):
+        self.partition_sizes.append(num_examples)
+        self.weights.append(num_examples*new_weights)
 
         if len(self.weights) == self.MAX_CONN:
 
@@ -158,11 +158,11 @@ class Server:
                     else:
                         client_id = message['CLIENT_ID']
                         weights = message['WEIGHTS']
-                        num_nodes = message["NUM_NODES"]
+                        num_examples = message["NUM_EXAMPLES"]
                         self.client_ids[notified_socket] = client_id
                     
                     logging.info('Recieved model from client-%s at %s:%s',client_id, *self.clients[notified_socket])
-                    self.update_model(weights,int(num_nodes))
+                    self.update_model(weights,int(num_examples))
 
             for notified_socket in exception_sockets:
                 self.sockets_list.remove(notified_socket)
