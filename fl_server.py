@@ -8,6 +8,7 @@ import sys
 import logging
 from timeit import default_timer as timer
 import gc
+import math
 
 logging.basicConfig(
     level=logging.INFO, 
@@ -57,24 +58,29 @@ class Server:
         self.sockets_list.append(self.server_socket)
 
     def update_model(self,new_weights,num_examples):
-        self.partition_sizes.append(num_examples)
-        self.weights.append(num_examples*new_weights)
+        self.partition_sizes.append(math.log(num_examples))
+        self.weights.append(math.log(num_examples)*new_weights)
+        #self.weights.append(new_weights)
 
         if len(self.weights) == self.MAX_CONN:
 
-            new_weights = np.mean(self.weights, axis=0)
-            new_weights = new_weights / sum(self.partition_sizes)
+            avg_weight = np.mean(self.weights, axis=0)
+            avg_weight = avg_weight / sum(self.partition_sizes)
+            print(self.partition_sizes)
+            print(sum(self.partition_sizes))
             self.weights = []
+
+            print(self.partition_sizes)
             self.partition_sizes = []
 
             #self.GLOBAL_MODEL.set_weights(new_weights)
-            self.GLOBAL_WEIGHTS = new_weights
+            self.GLOBAL_WEIGHTS = avg_weight
 
             self.training_cycles += 1
 
             # weights file name : global_weights_graphid.npy
             weights_path = self.weights_path + 'weights_' + 'graphID:' + self.graph_id + "_V" + str(self.training_cycles) + ".npy"
-            np.save(weights_path,new_weights)
+            np.save(weights_path,avg_weight)
 
             for soc in self.sockets_list[1:]:
                 self.send_model(soc)
