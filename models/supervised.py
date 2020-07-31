@@ -53,13 +53,13 @@ class Model:
         if(not "layer_sizes" in hyper_params.keys()):
             num_samples = [20, 10]
         if(not "num_samples" in hyper_params.keys()):
-            layer_sizes = [20, 20]
+            layer_sizes = [10, 10 ]
         if(not "bias" in hyper_params.keys()):
             bias = True
         if(not "dropout" in hyper_params.keys()):
-            dropout = 0.5
+            dropout = 0.1
         if(not "lr" in hyper_params.keys()):
-            lr = 1e-3
+            lr = 1e-2
 
         graph = sg.StellarGraph(nodes=self.nodes,edges=self.edges)
 
