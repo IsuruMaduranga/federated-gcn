@@ -102,6 +102,12 @@ For supervised training
 python fl_server.py ./weights/ ./data/ ./data/ 4 0 2 3 localhost 5000
 ```
 
+For supervised + sheduled training
+
+```
+python fl_server_shed.py ./weights/ ./data4/ ./data4/ 3 0 1 3 localhost 5000
+```
+
 
 #### Starting fl_client s
 
@@ -146,4 +152,25 @@ python fl_client.py ./weights/ ./data/ ./data/ 4 0 10 localhost 5000
 client 2
 ```
 python fl_client.py ./weights/ ./data/ ./data/ 4 1 10 localhost 5000
+```
+
+For supervised + sheduled training
+
+* client_id - ID for identify the client
+* path_weights - A location to extract and store model weights
+* path_nodes - Where your graph nodes are stored
+* path_edges - Where your graph edges are stored
+* graph_id - ID for identify graphs
+* partition_ids - Comma seperated IDs of the partitions ordered in to the sheduling order ( Ex:- 1,2,5)
+* epochs - number of epochs to train
+* IP(optional - default localhost) - IP of the VM that fl_server is in
+* PORT(optional - default 5000) - PORT that fl_server is listening to
+
+client 1 
+```
+python fl_client_shed.py 1 ./weights/ ./data4/ ./data4/ 3 0,1 3 localhost 5000
+```
+client 2
+```
+python fl_client_shed.py 2 ./weights/ ./data4/ ./data4/ 3 2,3 3 localhost 5000
 ```
