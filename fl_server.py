@@ -58,17 +58,16 @@ class Server:
         self.sockets_list.append(self.server_socket)
 
     def update_model(self,new_weights,num_examples):
-        #self.partition_sizes.append(num_examples)
-        #self.weights.append(num_examples * new_weights)
-        self.weights.append(new_weights)
+        self.partition_sizes.append(num_examples)
+        self.weights.append(num_examples * new_weights)
+       # self.weights.append(new_weights)
 
         if len(self.weights) == self.MAX_CONN:
 
-            avg_weight = np.mean(self.weights, axis=0)
-            #avg_weight = avg_weight / sum(self.partition_sizes)
+            #avg_weight = np.mean(self.weights, axis=0)
+            avg_weight = sum(self.weights) / sum(self.partition_sizes)
             self.weights = []
 
-            print(self.partition_sizes)
             self.partition_sizes = []
 
             #self.GLOBAL_MODEL.set_weights(new_weights)

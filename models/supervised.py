@@ -91,7 +91,7 @@ class Model:
         x_inp, x_out = graphsage.in_out_tensors()
 
         prediction = link_classification(
-            output_dim=1, output_act="relu", edge_embedding_method="ip"
+            output_dim=1, output_act="sigmoid", edge_embedding_method="ip"
         )(x_out)
 
         self.model = keras.Model(inputs=x_inp, outputs=prediction)

@@ -119,8 +119,13 @@ class Client:
             if self.STOP_FLAG:
                 eval = self.MODEL.evaluate()
 
-                f1_train = (2 * eval[0][2] * eval[0][4]) / (eval[0][2] + eval[0][4])
-                f1_test = (2 * eval[1][2] * eval[1][4]) / (eval[1][2] + eval[1][4])
+                try:
+                    f1_train = (2 * eval[0][2] * eval[0][4]) / (eval[0][2] + eval[0][4])
+                    f1_test = (2 * eval[1][2] * eval[1][4]) / (eval[1][2] + eval[1][4])
+                except ZeroDivisionError as e:
+                    f1_train = "undefined"
+                    f1_test = "undefined"
+                    
                 logging.info('_____________________________________________________ Final model evalution ____________________________________________________________')
                 logging.info('Finel model (v%s) fetched',self.rounds)
                 logging.info('Training set : loss - %s, accuracy - %s, recall - %s, AUC - %s, F1 - %s, precision - %s', eval[0][0], eval[0][1],eval[0][2],eval[0][3],f1_train,eval[0][4])
@@ -134,8 +139,13 @@ class Client:
 
                 eval = self.MODEL.evaluate()
 
-                f1_train = (2 * eval[0][2] * eval[0][4]) / (eval[0][2] + eval[0][4])
-                f1_test = (2 * eval[1][2] * eval[1][4]) / (eval[1][2] + eval[1][4])
+                try:
+                    f1_train = (2 * eval[0][2] * eval[0][4]) / (eval[0][2] + eval[0][4])
+                    f1_test = (2 * eval[1][2] * eval[1][4]) / (eval[1][2] + eval[1][4])
+                except ZeroDivisionError as e:
+                    f1_train = "undefined"
+                    f1_test = "undefined"
+
                 logging.info('Global model v%s - Training set evaluation : loss - %s, accuracy - %s, recall - %s, AUC - %s, F1 - %s, precision - %s',self.rounds - 1, eval[0][0], eval[0][1],eval[0][2],eval[0][3],f1_train,eval[0][4])
                 logging.info('Global model v%s - Testing set evaluation : loss - %s, accuracy - %s, recall - %s, AUC - %s, F1 - %s, precision - %s',self.rounds - 1,  eval[1][0], eval[1][1],eval[1][2],eval[1][3],f1_test,eval[1][4])
 
@@ -144,12 +154,12 @@ class Client:
                 self.train()
                 logging.info('Training done')
 
-                eval = self.MODEL.evaluate()
+                # eval = self.MODEL.evaluate()
 
-                f1_train = (2 * eval[0][2] * eval[0][4]) / (eval[0][2] + eval[0][4])
-                f1_test = (2 * eval[1][2] * eval[1][4]) / (eval[1][2] + eval[1][4])
-                logging.info('After Round %s - Local model - Training set evaluation : loss - %s, accuracy - %s, recall - %s, AUC - %s, F1 - %s, precision - %s',self.rounds, eval[0][0], eval[0][1],eval[0][2],eval[0][3],f1_train,eval[0][4])
-                logging.info('After Round %s - Local model - Testing set evaluation : loss - %s, accuracy - %s, recall - %s, AUC - %s, F1 - %s, precision - %s',self.rounds, eval[1][0], eval[1][1],eval[1][2],eval[1][3],f1_test,eval[1][4])
+                # f1_train = (2 * eval[0][2] * eval[0][4]) / (eval[0][2] + eval[0][4])
+                # f1_test = (2 * eval[1][2] * eval[1][4]) / (eval[1][2] + eval[1][4])
+                # logging.info('After Round %s - Local model - Training set evaluation : loss - %s, accuracy - %s, recall - %s, AUC - %s, F1 - %s, precision - %s',self.rounds, eval[0][0], eval[0][1],eval[0][2],eval[0][3],f1_train,eval[0][4])
+                # logging.info('After Round %s - Local model - Testing set evaluation : loss - %s, accuracy - %s, recall - %s, AUC - %s, F1 - %s, precision - %s',self.rounds, eval[1][0], eval[1][1],eval[1][2],eval[1][3],f1_test,eval[1][4])
 
                 logging.info('Sent local model to the server')
                 self.send_model()
