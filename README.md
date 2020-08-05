@@ -88,16 +88,6 @@ python fl_server_unsupervised.py ./weights/ ./data/ ./data/ 4 0 2 3 localhost 50
 ```
 For supervised training
 
-* path_weights - A location to extract and store model weights
-* path_nodes - Where your graph nodes are stored
-* path_edges - Where your graph edges are stored
-* graph_id - ID for identify graphs
-* partition_id - ID of the partition located in server that is used to initialize the weights
-* num_clients - Number of clients that will be join for the federated training
-* num_rounds - Number of federated rounds to be trained
-* IP(optional - default localhost) - IP of the VM that fl_server is in
-* PORT(optional - default 5000) - PORT that shuould be used to communicate with clients
-
 ```
 python fl_server.py ./weights/ ./data/ ./data/ 4 0 2 3 localhost 5000
 ```

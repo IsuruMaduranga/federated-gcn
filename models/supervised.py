@@ -1,4 +1,16 @@
-# imports
+import logging
+import sys
+
+logging.basicConfig(
+    level=logging.INFO, 
+    format='%(asctime)s : [%(levelname)s]  %(message)s',
+    handlers=[
+        logging.FileHandler('supervised.log'),
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+
+
 import stellargraph as sg
 from stellargraph.data import EdgeSplitter
 from stellargraph.mapper import GraphSAGELinkGenerator
@@ -13,24 +25,13 @@ import random as python_random
 
 from sklearn import preprocessing, feature_extraction, model_selection
 import os
-import sys
 import numpy as np
 import pandas as pd
-import logging
 from timeit import default_timer as timer
 
 tf.random.set_seed(42)
 np.random.seed(42)
 python_random.seed(42)
-
-logging.basicConfig(
-    level=logging.INFO, 
-    format='%(asctime)s : [%(levelname)s]  %(message)s',
-    handlers=[
-        logging.FileHandler('supervised.log'),
-        logging.StreamHandler(sys.stdout)
-    ]
-)
 
 class Model:
 
@@ -132,7 +133,8 @@ if __name__ == "__main__":
     arg_names = [
         'path_weights',
         'path_nodes',
-        'path_edges'
+        'path_edges',
+        'epochs'
     ]
 
     args = dict(zip(arg_names, sys.argv[1:]))
@@ -151,7 +153,7 @@ if __name__ == "__main__":
     logging.info('Training started!')
     start = timer()
 
-    new_weights,history = model.fit()
+    new_weights,history = model.fit(int(args["epochs"]))
 
     end = timer()
     logging.info('Training done!')
