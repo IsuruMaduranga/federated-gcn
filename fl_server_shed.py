@@ -61,9 +61,11 @@ class Server:
     def update_model(self,new_weights,partition_size):
 
         self.partition_sizes.extend(partition_size)
-        self.weights.extend([p*w for p,w in zip(partition_size, new_weights)])
 
-        #self.weights.extend(new_weights)
+        for i in range(len(partition_size)):
+            self.weights.append(partition_size[i] * new_weights[i])
+
+        #self.weights.extend(np.array(new_weights))
 
         self.finished_client_count += 1
 
@@ -71,6 +73,7 @@ class Server:
 
             #avg_weight = np.mean(self.weights, axis=0)
             avg_weight = sum(self.weights) / sum(self.partition_sizes)
+
             self.weights = []
             self.partition_sizes = []
 

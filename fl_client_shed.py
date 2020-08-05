@@ -76,31 +76,31 @@ class Client:
 
 
     def fetch_model(self):
-        try:
+        
+        message_header = self.client_socket.recv(self.HEADER_LENGTH)
 
-            message_header = self.client_socket.recv(self.HEADER_LENGTH)
-            if not len(message_header):
-                return False
+        if not len(message_header):
+            return False
 
-            message_length = int(message_header.decode('utf-8').strip())
+        message_length = int(message_header.decode('utf-8').strip())
 
-            full_msg = b''
-            while True:
-                msg = self.client_socket.recv(message_length)
+        full_msg = b''
+        while True:
+            msg = self.client_socket.recv(message_length)
 
-                full_msg += msg
+            full_msg += msg
 
-                if len(full_msg) == message_length:
-                    break
-            
-            data = pickle.loads(full_msg)
+            if len(full_msg) == message_length:
+                break
+        
+        data = pickle.loads(full_msg)
 
-            self.STOP_FLAG = data["STOP_FLAG"]
+        self.STOP_FLAG = data["STOP_FLAG"]
 
-            self.GLOBAL_MODEL = data["WEIGHTS"]
+        self.GLOBAL_MODEL = data["WEIGHTS"]
 
-        except Exception as e:
-            print(e)
+        return True
+
 
     def run(self):
 
@@ -108,10 +108,20 @@ class Client:
 
             read_sockets, _, exception_sockets = select.select([self.client_socket], [], [self.client_socket])
 
+            success = False
             for soc in read_sockets:
-                self.fetch_model()
-                
-        
+                success = self.fetch_model()
+
+                if success:
+                    self.rounds += 1
+                    logging.info('Global model v%s fetched',self.rounds - 1)
+                else:
+                    logging.error('Global model fetching failed')
+
+            if not success:
+                logging.error('Stop training')
+                break
+
             if self.STOP_FLAG:
                 self.MODEL.set_weights(self.GLOBAL_MODEL)
                 
@@ -130,9 +140,7 @@ class Client:
                 
             else:
                 
-                self.rounds += 1
                 logging.info('_____________________________________________________ Training Round %s ____________________________________________________________',self.rounds)
-                logging.info('Global model v%s fetched',self.rounds - 1)
 
                 for partition in self.partition_ids:
 
@@ -163,7 +171,7 @@ class Client:
                 
                     logging.info('Training started')
                     self.MODEL.fit(epochs = self.epochs)
-                    self.LOCAL_MODELS.append(self.MODEL.get_weights())
+                    self.LOCAL_MODELS.append(np.array(self.MODEL.get_weights()))
                     logging.info('Training done')
 
                     # eval = self.MODEL.evaluate()
