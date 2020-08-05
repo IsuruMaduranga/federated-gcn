@@ -55,18 +55,24 @@ class Client:
 
         self.GLOBAL_MODEL = None
         self.MODEL = None
+
         self.LOCAL_MODELS = []
+        self.partition_sizes = []
+
         self.STOP_FLAG = False
         self.rounds = 0
 
 
     def send_models(self):
 
-        data = {"CLIENT_ID":self.client_id,"PARTITIONS":self.partition_ids,"WEIGHTS":self.LOCAL_MODELS}
+        data = {"CLIENT_ID":self.client_id,"PARTITIONS":self.partition_ids,"PARTITION_SIEZES":self.partition_sizes,"WEIGHTS":self.LOCAL_MODELS}
 
         data = pickle.dumps(data)
         data = bytes(f"{len(data):<{self.HEADER_LENGTH}}", 'utf-8') + data
         self.client_socket.sendall(data)
+
+        self.LOCAL_MODELS = []
+        self.partition_sizes = []
 
 
     def fetch_model(self):
@@ -141,6 +147,8 @@ class Client:
                     logging.info('Model initialized')
                     self.MODEL = Model(nodes,edges)
                     num_train_ex,num_test_ex = self.MODEL.initialize()
+                    self.partition_sizes.append(num_train_ex)
+
                     self.MODEL.set_weights(self.GLOBAL_MODEL)
 
                     logging.info('Number of training examples - %s, Number of testing examples %s',num_train_ex,num_test_ex)
@@ -158,12 +166,12 @@ class Client:
                     self.LOCAL_MODELS.append(self.MODEL.get_weights())
                     logging.info('Training done')
 
-                    eval = self.MODEL.evaluate()
+                    # eval = self.MODEL.evaluate()
 
-                    f1_train = (2 * eval[0][2] * eval[0][4]) / (eval[0][2] + eval[0][4])
-                    f1_test = (2 * eval[1][2] * eval[1][4]) / (eval[1][2] + eval[1][4])
-                    logging.info('After Round %s - Local model - Training set evaluation : accuracy - %s, recall - %s, AUC - %s, F1 - %s, precision - %s',self.rounds,eval[0][1],eval[0][2],eval[0][3],f1_train,eval[0][4])
-                    logging.info('After Round %s - Local model - Testing set evaluation : accuracy - %s, recall - %s, AUC - %s, F1 - %s, precision - %s',self.rounds,eval[1][1],eval[1][2],eval[1][3],f1_test,eval[1][4])
+                    # f1_train = (2 * eval[0][2] * eval[0][4]) / (eval[0][2] + eval[0][4])
+                    # f1_test = (2 * eval[1][2] * eval[1][4]) / (eval[1][2] + eval[1][4])
+                    # logging.info('After Round %s - Local model - Training set evaluation : accuracy - %s, recall - %s, AUC - %s, F1 - %s, precision - %s',self.rounds,eval[0][1],eval[0][2],eval[0][3],f1_train,eval[0][4])
+                    # logging.info('After Round %s - Local model - Testing set evaluation : accuracy - %s, recall - %s, AUC - %s, F1 - %s, precision - %s',self.rounds,eval[1][1],eval[1][2],eval[1][3],f1_test,eval[1][4])
 
                 logging.info('********************************************* All partitions trained **********************************************')
 

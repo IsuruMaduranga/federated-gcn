@@ -60,7 +60,7 @@ class Server:
     def update_model(self,new_weights,num_examples):
         self.partition_sizes.append(num_examples)
         self.weights.append(num_examples * new_weights)
-       # self.weights.append(new_weights)
+        # self.weights.append(new_weights)
 
         if len(self.weights) == self.MAX_CONN:
 

@@ -58,23 +58,24 @@ class Server:
 
         self.sockets_list.append(self.server_socket)
 
-    def update_model(self,new_weights,partition_ids):
-        #self.partition_sizes.append(num_examples)
-        #self.weights.append(num_examples * new_weights)
-        self.weights.extend(new_weights)
+    def update_model(self,new_weights,partition_size):
+
+        self.partition_sizes.extend(partition_size)
+        self.weights.extend([p*w for p,w in zip(partition_size, new_weights)])
+
+        #self.weights.extend(new_weights)
+
         self.finished_client_count += 1
 
         if self.finished_client_count == self.NUM_CLIENTS:
 
-            avg_weight = np.mean(self.weights, axis=0)
-            #avg_weight = avg_weight / sum(self.partition_sizes)
+            #avg_weight = np.mean(self.weights, axis=0)
+            avg_weight = sum(self.weights) / sum(self.partition_sizes)
             self.weights = []
-
-            print(self.partition_sizes)
             self.partition_sizes = []
+
             self.finished_client_count = 0
 
-            #self.GLOBAL_MODEL.set_weights(new_weights)
             self.GLOBAL_WEIGHTS = avg_weight
 
             self.training_cycles += 1
@@ -165,11 +166,11 @@ class Server:
                     else:
                         client_id = message['CLIENT_ID']
                         weights = message['WEIGHTS']
-                        partitions = message["PARTITIONS"]
+                        partition_size = message["PARTITION_SIEZES"]
                         self.client_ids[notified_socket] = client_id
                     
                     logging.info('Recieved model from client-%s at %s:%s',client_id, *self.clients[notified_socket])
-                    self.update_model(weights,partitions)
+                    self.update_model(weights,partition_size)
 
             for notified_socket in exception_sockets:
                 self.sockets_list.remove(notified_socket)
