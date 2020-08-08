@@ -218,10 +218,11 @@ if __name__ == "__main__":
    
     model = Model(nodes,edges)
     model.initialize()
+    model_weights = model.get_weights()
 
     logging.info('Model initialized')
     
-    server = Server(model.get_weights(),ROUNDS=int(args['num_rounds']),weights_path=args['path_weights'],graph_id=args['graph_id'],NUM_CLIENTS=int(args['num_clients']),IP=args['IP'],PORT=int(args['PORT']))
+    server = Server(model_weights,ROUNDS=int(args['num_rounds']),weights_path=args['path_weights'],graph_id=args['graph_id'],NUM_CLIENTS=int(args['num_clients']),IP=args['IP'],PORT=int(args['PORT']))
 
     del nodes
     del edges
