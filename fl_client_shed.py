@@ -1,5 +1,6 @@
 import sys
 import logging
+import gc
 
 arg_names = [
     'client_id',
@@ -175,6 +176,13 @@ class Client:
                     self.MODEL.fit(epochs = self.epochs)
                     self.LOCAL_MODELS.append(np.array(self.MODEL.get_weights()))
                     logging.info('Training done')
+
+                    del self.MODEL
+                    del nodes
+                    del edges
+                    
+                    gc.collect()
+
 
                     # eval = self.MODEL.evaluate()
 
