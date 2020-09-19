@@ -52,7 +52,16 @@ class Client:
         self.epochs = epochs
 
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.client_socket.connect((IP, PORT))
+
+        connected = False
+        while not connected:
+            try:
+                self.client_socket.connect((IP, PORT))
+            except ConnectionRefusedError:
+                time.sleep(5)
+            else:
+                logging.info('Connected to the server')
+                connected = True
 
         self.GLOBAL_MODEL = None
         self.MODEL = None
